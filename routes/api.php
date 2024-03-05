@@ -9,6 +9,9 @@ Route::middleware(['cors'])->group(function (){
      * =================== ROUTE POST ==================
     */
 
+    //Route pour créer un candidat
+    Route::post('/candidate.create', [\App\Http\Controllers\AppController::class, 'createCandidate']);
+
     //Route pour recuperer la liste de tous les candidats
     Route::get('/candidates.all', [\App\Http\Controllers\AppController::class, 'viewAllCandidates']);
 

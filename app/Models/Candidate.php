@@ -29,7 +29,18 @@ class Candidate extends Model
      * @var array
      */
     protected $fillable = [
-
+        'nom',
+        'postnom',
+        'prenom',
+        'email',
+        'telephone',
+        'adresse',
+        'diplome',
+        'domaine',
+        'description',
+        'profil',
+        'image',
+        'cv',
     ];
 
     /**
