@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\FormationNotify;
 use App\Models\Candidate;
+use App\Models\FormationCandidate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AppController extends Controller
 {
@@ -125,6 +128,57 @@ class AppController extends Controller
         return response()->json([
             "status" => "success",
             "candidat"=>$candidate
+        ]);
+    }
+
+    /**
+     * *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function createFormationCandidates(Request $request) : JsonResponse{
+        try{
+            $data = $request->validate([
+                "nom"=>"required|string",
+                "prenom"=>"required|string",
+                "telephone"=>"required|string|min:10",
+                "current_job"=>"nullable|string",
+                "email"=>"nullable|email|unique:formation_candidates,email",
+                "adresse"=>"nullable|string",
+                "hobbie"=>"nullable|string",
+                "ville"=>"required|string"
+            ]);
+            $currentCandidate = FormationCandidate::create($data);
+            if(isset($currentCandidate)){
+                try {
+                    if ($currentCandidate->email) {
+                        Mail::to($currentCandidate->email)->send(new FormationNotify($currentCandidate));
+                    }
+                } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
+                }
+                return response()->json([
+                    "status"=>"success",
+                    "formation_candidate"=>$currentCandidate
+                ]);
+            }
+            else{
+                return response()->json(['errors' => "Echec d'enregistrement de votre candidature !" ]);
+            }
+        }
+        catch (\Illuminate\Validation\ValidationException $e){
+            $errors = $e->validator->errors()->all();
+            return response()->json(['errors' => $errors ]);
+        }
+        catch (\Illuminate\Database\QueryException $e){
+            return response()->json(['errors' => $e->getMessage() ]);
+        }
+    }
+
+    public function viewAllFormationCandidates() : JsonResponse{
+        $datas = FormationCandidate::orderBy('id','desc')->get();
+        return response()->json([
+            'status'=> 'success',
+            'formation_candidates'=> $datas
         ]);
     }
 }

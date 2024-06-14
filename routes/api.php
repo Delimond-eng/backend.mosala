@@ -9,6 +9,12 @@ Route::middleware(['cors'])->group(function (){
      * =================== ROUTE POST ==================
     */
 
+    //Route pour créer un candidat de la formation
+    Route::post('/formation.save.candidate', [\App\Http\Controllers\AppController::class, 'createFormationCandidates']);
+
+    //Route pour voir les candidats de la formation
+    Route::get('/formation.candidates', [\App\Http\Controllers\AppController::class, 'viewAllFormationCandidates']);
+
     //Route pour créer un candidat
     Route::post('/candidate.create', [\App\Http\Controllers\AppController::class, 'createCandidate']);
 
