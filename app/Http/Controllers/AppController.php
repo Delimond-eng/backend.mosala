@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\FormationNotify;
 use App\Models\Candidate;
 use App\Models\FormationCandidate;
+use App\Models\FormationPaiement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -121,7 +122,6 @@ class AppController extends Controller
      * @author Gaston delimond
      * @DateTime 04/03/2024
      */
-
     public function viewCandidateProfil(int $id) :JsonResponse
     {
         $candidate = Candidate::where('candidat_id', $id)->first();
@@ -141,13 +141,14 @@ class AppController extends Controller
             $data = $request->validate([
                 "nom"=>"required|string",
                 "prenom"=>"required|string",
-                "telephone"=>"required|string|min:10",
+                "telephone"=>"required|string|min:10|unique:formation_candidates,telephone",
                 "current_job"=>"nullable|string",
                 "email"=>"nullable|email|unique:formation_candidates,email",
                 "adresse"=>"nullable|string",
                 "hobbie"=>"nullable|string",
                 "ville"=>"required|string"
             ]);
+            $data['code'] = FormationCandidate::generateUniqueCode();
             $currentCandidate = FormationCandidate::create($data);
             if(isset($currentCandidate)){
                 try {
@@ -155,6 +156,10 @@ class AppController extends Controller
                         Mail::to($currentCandidate->email)->send(new FormationNotify($currentCandidate));
                     }
                 } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
+                    return response()->json([
+                        "status"=> "error",
+                        "message"=> $e->getMessage()
+                    ]);
                 }
                 return response()->json([
                     "status"=>"success",
@@ -175,10 +180,59 @@ class AppController extends Controller
     }
 
     public function viewAllFormationCandidates() : JsonResponse{
-        $datas = FormationCandidate::orderBy('id','desc')->get();
+        $datas = FormationCandidate::with('paiement')
+        ->whereNot('status','deleted')
+        ->orderBy('id','desc')->get();
         return response()->json([
             'status'=> 'success',
             'formation_candidates'=> $datas
         ]);
+    }
+    /**
+     * Summary of deleteFormationCandidate
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteFormationCandidate(int $id): JsonResponse
+    {
+        $candidate = FormationCandidate::findOrFail( $id );
+        if ($candidate) {
+            $candidate->status = 'deleted';
+            $candidate->save();
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Candidat supprimé avec succès !'
+        ]);
+    }
+
+    public function savePaymentForFormationCandidate( Request $request) : JsonResponse{
+        try{
+            $data = $request->validate([
+                "candidate_code"=>'required|string|exists:formation_candidates,code',
+                "amount"=>"required|numeric",
+                "mode"=>"nullable|string",
+                "devise"=>"required|string"
+            ]);
+
+            $paieResult = FormationPaiement::updateOrCreate(["candidate_code"=>$data["candidate_code"]],$data);
+            if ($paieResult) {
+                return response()->json([
+                    "status"=> "success",
+                    "result"=>$paieResult
+                ]);
+            }
+            else{
+                return response()->json([
+                    "errors"=>"Echec de traitement de ce paiement"
+                ]);
+            }
+        }catch (\Illuminate\Validation\ValidationException $e){
+            $errors = $e->validator->errors()->all();
+            return response()->json(['errors' => $errors ]);
+        }
+        catch (\Illuminate\Database\QueryException $e){
+            return response()->json(['errors' => $e->getMessage() ]);
+        }
     }
 }

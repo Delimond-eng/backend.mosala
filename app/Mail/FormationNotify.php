@@ -5,6 +5,7 @@ use App\Models\FormationCandidate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -33,9 +34,12 @@ class FormationNotify extends Mailable
     public function envelope()
     {
         return new Envelope(
-            subject: 'Confirmation de votre candidature'
+            from: new Address('no-reply@gmail.com', 'No Reply'),
+            subject: 'Confirmation de votre candidature',
+            cc:["info@milleniumhorizon.com", "tech@milleniumhorizon.com"],
         );
     }
+
 
     /**
      * Get the message content definition.

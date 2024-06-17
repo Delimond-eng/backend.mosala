@@ -2,21 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class FormationCandidate extends Model
+class FormationPaiement extends Model
 {
     use HasFactory;
+
 
      /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'formation_candidates';
+    protected $table = 'formation_paiements';
 
     /**
      * The primary key for the model.
@@ -31,16 +30,10 @@ class FormationCandidate extends Model
      * @var array
      */
     protected $fillable = [
-        'code',
-        'nom',
-        'prenom',
-        'email',
-        'telephone',
-        'adresse',
-        'current_job',
-        'hobbie',
-        'ville',
-        'goal',
+        'candidate_code',
+        'mode',
+        'amount',
+        'devise',
     ];
 
     /**
@@ -71,22 +64,4 @@ class FormationCandidate extends Model
         'created_at',
         'updated_at',
     ];
-
-    /**
-     * Summary of paiement
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function paiement(): HasOne{
-        return $this->hasOne(FormationPaiement::class, foreignKey:'candidate_code', localKey:'code');
-    }
-
-     public static function generateUniqueCode()
-    {
-       do {
-            //$letters = strtoupper(Str::random(2));
-            $digits = rand(100000, 999999);
-            $code = "MH-" . $digits;
-        } while (self::where('code', $code)->exists());
-        return $code;
-    }
 }

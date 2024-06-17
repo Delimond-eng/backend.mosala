@@ -12,8 +12,14 @@ Route::middleware(['cors'])->group(function (){
     //Route pour créer un candidat de la formation
     Route::post('/formation.save.candidate', [\App\Http\Controllers\AppController::class, 'createFormationCandidates']);
 
+    //Route pour supprimer un candidat de la liste
+    Route::get('formation.candidate.delete/{id}', [\App\Http\Controllers\AppController::class,'deleteFormationCandidate']);
+
     //Route pour voir les candidats de la formation
     Route::get('/formation.candidates', [\App\Http\Controllers\AppController::class, 'viewAllFormationCandidates']);
+
+    //Route pour sauvegarder le paiement
+    Route::post('formation.save.paiement', [\App\Http\Controllers\AppController::class, 'savePaymentForFormationCandidate']);
 
     //Route pour créer un candidat
     Route::post('/candidate.create', [\App\Http\Controllers\AppController::class, 'createCandidate']);
